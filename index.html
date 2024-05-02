@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crossing Assistant</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<style>
+  body {
+    background-color: #f7fafc;
+    color: #1a202c;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  #menuContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+  }
+
+  .menu-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    margin: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .menu-button:hover {
+    background-color: #367c39;
+  }
+
+  .warning {
+    padding: 20px;
+    background-color: #f56565;
+    color: white;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+
+  .container {
+    background-color: #f0f0f0;
+    padding: 20px;
+  }
+
+  #stickman {
+    position: absolute;
+    top: 50%;
+    left: calc(0% - 10px);
+    transform: translateX(-50%) translateY(-50%) scaleX(-1);
+    width: 30px;
+    height: auto;
+  }
+
+  #sliderBox {
+    width: 60%;
+    margin: auto;
+    height: 100%;
+    position: relative;
+  }
+
+  #bottomScreen {
+    width: 100%;
+    height: 400px;
+    display: flex;
+    position: relative;
+  }
+  #cameraBox{
+    width: 100%;
+    height: 400px;
+  }
+  #cameraStream
+  {
+    display: inherit;
+    height: 300px;
+    width: 100%;
+  }
+  #muteButton {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    margin-right: 10px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  #buttonsContainer {
+    display: none; /* Hide the buttons container by default */
+  }
+
+  #buttonsContainer button {
+    margin-bottom: 10px; /* Adjust the space between buttons */
+  }
+
+
+  .left-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .right-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .slider {
+    width: 100%;
+  }
+
+  .button2,
+  .button3 {
+    flex: 1;
+    background-color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .button2 {
+    margin-bottom: 5px;
+  }
+
+  .feedback-button {
+    flex: 1;
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .start-buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+  }
+
+  .start-button {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    padding: 20px 40px;
+    margin: 0 10px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  
+  /* Modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+  }
+
+  .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .instruction-title {
+    font-weight: bold;
+  }
+
+  .instruction-list {
+    padding-left: 20px;
+  }
+
+  /* Style the list items */
+  .instruction-list li {
+    margin-bottom: 10px; /* Adjust spacing between list items */
+    list-style-type: decimal; /* Display list items as numbers */
+  }
+
+  /* Dark mode styles */
+  .dark-mode body {
+    background-color: #333333;
+    color: #ffffff;
+  }
+
+  .dark-mode .container {
+    background-color: #333333;
+  }
+
+  .dark-mode #cameraBox {
+    background-color: #444444;
+    color: #ffffff;
+  }
+  .dark-mode #feedbackScreen,
+  .dark-mode #bottomScreen,
+  .dark-mode #sliderBox {
+    background-color: #444444;
+    color: #ffffff;
+  }
+
+  .dark-mode .button2,
+  .dark-mode .button3,
+  .dark-mode .feedback-button,
+  .dark-mode .start-button {
+    background-color: #666666;
+    color: #ffffff;
+  }
+
+  .dark-mode .feedback-button:hover,
+  .dark-mode .start-button:hover {
+    background-color: #4CAF50;
+  }
+  .dark-mode .feedback-box {
+    background-color: #666666;
+    color: #ffffff;
+  }
+  .hidden {
+    display: none;
+  }
+
+  /* Traffic Incidents Dark Mode */
+  .dark-mode #trafficInfo {
+    background-color: #444444;
+    color: #ffffff;
+  }
+
+  .dark-mode #trafficList {
+    color: #ffffff;
+  }
+
+  /* Dark mode styles for menuContainer */
+  .dark-mode #menuContainer {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+  }
+  .dark-mode #container{
+    background-color: #333333 !important;
+  }
+  .dark-mode .menu-button {
+    background-color: #666666;
+  }
+
+  .dark-mode .warning {
+    background-color: #444444;
+  }
+</style>
+</head>
+<body class="bg-gray-100">
+
+<div class="container mx-auto p-4">
+  <div class="grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden" id="screens">
+      <div id="cameraBox" class="bg-white p-4 rounded-lg shadow-lg hidden">
+        <p class="text-center">Camera Access</p>
+        <video id="cameraStream" autoplay></video>
+        <button id="redDetected" class="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full hidden">
+          Red Detected
+        </button>
+      </div>
+      <div id="bottomScreen" class="bg-white p-4 rounded-lg shadow-lg hidden">
+        <div class="left-section" id="firstSection">
+          <p id="bottomText1" class="text-center"></p>
+        </div>
+        <div class="right-section">
+          <div class="button2" id="secondSection">
+            <p id="bottomText2" class="text-center"></p>
+          </div>
+          <div class="button3" id="thirdSection">
+            <p id="bottomText3" class="text-center"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="sliderBox" class="bg-white p-4 rounded-lg shadow-lg hidden">
+      <p class="text-center">Move the slider when you start walking</p>
+      <div class="flex items-center justify-center slider-container">
+        <input type="range" id="walkingSlider" class="slider" min="0" max="100" value="0">
+        <img id="stickman" src="https://fonts.gstatic.com/s/e/notoemoji/latest/1fabf/512.gif" alt="Stickman">
+      </div>
+    </div>
+    <div id="feedbackScreen" class="bg-white p-4 rounded-lg shadow-lg hidden">
+      <h2 class="text-center">Feedback Form</h2>
+      <form id="feedbackForm" action="/submit_feedback" method="post">
+        <div class="mb-4">
+          <label for="name" class="block text-sm font-bold mb-2">Name:</label>
+          <input type="text" id="name" name="name" class="w-full px-3 py-2 border rounded" placeholder="Enter your name" required>
+        </div>
+        <div class="mb-4">
+          <label for="location" class="block text-sm font-bold mb-2">Location:</label>
+          <input type="text" id="location" name="location" class="w-full px-3 py-2 border rounded" placeholder="Enter your location" >
+        </div>
+        <div class="mb-4">
+          <label for="visualImpairment" class="block text-sm font-bold mb-2">Type of Visual Impairment/Level of Blindness:</label>
+          <input type="text" id="visualImpairment" name="visualImpairment" class="w-full px-3 py-2 border rounded" placeholder="Enter your visual impairment level" >
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">How frequently do you find yourself needing to cross roads unaccompanied as a visually impaired individual?</label>
+          <select id="frequency" name="frequency" class="w-full px-3 py-2 border rounded">
+            <option value="" disabled selected>Select an option</option>
+            <option value="Daily">Daily</option>
+            <option value="Several times a week">Several times a week</option>
+            <option value="Occasionally">Occasionally</option>
+            <option value="Rarely">Rarely</option>
+            <option value="Never">Never</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">How beneficial do you think it would be to have a system that provides auditory cues and real-time information about road conditions to aid visually impaired pedestrians in crossing safely?</label>
+          <select id="benefit" name="benefit" class="w-full px-3 py-2 border rounded">
+            <option value="" disabled selected>Select an option</option>
+            <option value="Not at all beneficial">Not at all beneficial</option>
+            <option value="Slightly beneficial">Slightly beneficial</option>
+            <option value="Moderately beneficial">Moderately beneficial</option>
+            <option value="Very beneficial">Very beneficial</option>
+            <option value="Extremely beneficial">Extremely beneficial</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="navigation" class="block text-sm font-bold mb-2">How do you currently navigate road crossings without auditory cues or warnings? Do you rely on other sensory inputs or assistance from others?</label>
+          <textarea id="navigation" name="navigation" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your navigation method"></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="insufficientWarnings" class="block text-sm font-bold mb-2">Have you ever encountered situations where auditory cues or warnings provided by existing systems (such as traffic lights or pedestrian crossing signals) were insufficient or unreliable?</label>
+          <textarea id="insufficientWarnings" name="insufficientWarnings" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your experience"></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="usefulFeatures" class="block text-sm font-bold mb-2">What features or functionalities would you find most useful in an auditory cue system designed to assist visually impaired individuals in crossing roads safely?</label>
+          <textarea id="usefulFeatures" name="usefulFeatures" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your preferences" ></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="concerns" class="block text-sm font-bold mb-2">Do you have any concerns or reservations about relying on technology to assist with road crossings, particularly in terms of reliability or usability?</label>
+          <textarea id="concerns" name="concerns" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your concerns" ></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="websiteExperience" class="block text-sm font-bold mb-2">How would you describe your experience navigating our website as a visually impaired individual?</label>
+          <textarea id="websiteExperience" name="websiteExperience" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your experience"></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="websiteAccessibility" class="block text-sm font-bold mb-2">What aspects of our website's navigation do you find intuitive or challenging?</label>
+          <textarea id="websiteAccessibility" name="websiteAccessibility" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your feedback"></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="accessibilityFeatures" class="block text-sm font-bold mb-2">What accessibility features or adjustments would you like to see implemented on our website to improve your user experience?</label>
+          <textarea id="accessibilityFeatures" name="accessibilityFeatures" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your suggestions" ></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="interactionPreference" class="block text-sm font-bold mb-2">How do you prefer to interact with user interface elements on our website, such as buttons, forms, and menus?</label>
+          <textarea id="interactionPreference" name="interactionPreference" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your preferences" ></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="recommendations" class="block text-sm font-bold mb-2">Based on your experience using our website, what recommendations do you have for future enhancements or updates to better accommodate the needs of visually impaired users?</label>
+          <textarea id="recommendations" name="recommendations" class="w-full px-3 py-2 border rounded" rows="4" placeholder="Enter your recommendations" ></textarea>
+        </div>
+        <button id="submitFeedback" type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">
+          Submit
+        </button>
+      </form>
+    </div>    
+  </div>
+</div>
+
+<div id="menuContainer" >
+  <h1 class="text-4xl font-bold mb-6">Welcome to Our Application</h1>
+  <p class="text-lg mb-4">Please select one of these menu options:</p>
+  <div class="buttons">
+    <button id="startButtonCrossing" class="menu-button">I am at the crossing</button>
+    <button id="startButtonForm" class="menu-button">Form</button>
+    <button id="trafficIncidentsButton" class="menu-button">Traffic Incidents</button>
+    <button id="helpButton" class="menu-button">Help</button>
+  </div>
+  <div class="warning mt-6">
+    <strong>Warning:</strong> Please avoid walking near Park Ave due to ongoing construction.
+    <button id="playWarning" class="ml-2 bg-gray-700 text-white font-bold py-2 px-2 rounded-full">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5 4a1 1 0 011.6-.8l8 6a1 1 0 010 1.6l-8 6A1 1 0 015 16V4z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div id="circleButton" class="bg-gray-700 text-white font-bold py-2 px-4 rounded-full fixed bottom-4 right-2 cursor-pointer">
+  &#x2630; <!-- Unicode character for three horizontal bars -->
+</div>
+
+<div id="buttonsContainer" class="fixed bottom-5 right-14 flex flex-col gap-0">
+  <button id="muteButton" class="bg-gray-700 text-white font-bold py-2 px-4 rounded-full">
+    Mute
+  </button>
+  <button id="darkModeButton" class="bg-gray-700 text-white font-bold py-2 px-4 rounded-full">
+    Dark Mode
+  </button>
+</div>
+
+<div id="trafficInfo" class="hidden bg-white p-4 rounded-lg shadow-lg">
+  <h2 class="text-center">Traffic Incidents</h2>
+  <ul id="trafficList" class="list-disc pl-5"></ul>
+</div>
+
+<!-- Modal for instructions -->
+<div id="instructionsModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 class="instruction-title">Instructions:</h2>
+    <ol class="instruction-list">
+      <li>Click on the "I am at the crossing" button to start using the crossing assistant.</li>
+      <li>Follow the on-screen instructions and use the slider to indicate your progress while crossing the street.</li>
+      <li>Single click on first box for street name, double click on second box for number of steps and click three times on third box for type of intersection.</li>
+      <li>If you encounter a red signal, use the slider for audio cues.</li>
+      <li>After crossing, you can provide feedback by scrolling below or clicking on the "Form" button.</li>
+      <li>To mute/unmute the assistant or switch to dark mode, use the circular button on the bottom right corner.</li>
+    </ol>
+  </div>
+</div>
+
+
+
+
+<script>
+  const startButtonCrossing = document.getElementById('startButtonCrossing');
+  const startButtonForm = document.getElementById('startButtonForm');
+  const cameraBox = document.getElementById('cameraBox');
+  const sliderBox = document.getElementById('sliderBox');
+  const bottomScreen = document.getElementById('bottomScreen');
+  const bottomText1 = document.getElementById('bottomText1');
+  const bottomText2 = document.getElementById('bottomText2');
+  const bottomText3 = document.getElementById('bottomText3');
+  const walkingSlider = document.getElementById('walkingSlider');
+  const stickman = document.getElementById('stickman');
+  const redDetected = document.getElementById('redDetected');
+  const feedbackScreen = document.getElementById('feedbackScreen');
+  const submitFeedback = document.getElementById('submitFeedback');
+  const screens = document.getElementById('screens');
+  const darkModeButton = document.getElementById('darkModeButton');
+  const muteButton = document.getElementById('muteButton');
+  const synth = window.speechSynthesis;
+
+  let clickCount = 0;
+  let speaking = false; // Flag to track if text is currently being spoken
+  let isMuted = false; // Flag to track mute state
+
+  const playWarningButton = document.getElementById('playWarning');
+  const warningText = "Warning, Please avoid walking near Park Ave due to ongoing construction.";
+
+  playWarningButton.addEventListener('click', () => {
+    speakText(warningText);
+  });
+
+  const circleButton = document.getElementById('circleButton');
+  let buttonsVisible = true;
+
+  const buttonsContainer = document.getElementById('buttonsContainer');
+
+  circleButton.addEventListener('click', () => {
+    // Toggle the display property directly
+    
+    buttonsContainer.style.display = buttonsContainer.style.display === 'none' ? 'flex' : 'none';
+  });
+
+  // JavaScript to show/hide modal
+  const instructionsModal = document.getElementById('instructionsModal');
+  const helpButton = document.getElementById('helpButton');
+  const closeBtn = document.getElementsByClassName('close')[0];
+
+  helpButton.addEventListener('click', () => {
+    alert('Displaying help...');
+    speakText('Displaying help...');
+    instructionsModal.style.display = 'block';
+  });
+
+  closeBtn.addEventListener('click', () => {
+    instructionsModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (event) => {
+    if (event.target === instructionsModal) {
+      instructionsModal.style.display = 'none';
+    }
+  });
+
+
+  circleButton.addEventListener('click', () => {
+    
+    buttonsVisible = !buttonsVisible;
+    muteButton.style.display = buttonsVisible ? 'block' : 'none';
+    darkModeButton.style.display = buttonsVisible ? 'block' : 'none';
+  });
+
+  startButtonCrossing.addEventListener('click', () => {
+    speakText('Starting the crossing assistant...');
+    alert('Starting the crossing assistant...');
+    menuContainer.style.display = 'none'
+
+    screens.classList.remove('hidden');
+    startButtonCrossing.classList.add('hidden');
+    startButtonForm.classList.add('hidden');
+    cameraBox.classList.remove('hidden');
+    sliderBox.classList.remove('hidden');
+    bottomScreen.classList.remove('hidden');
+    trafficIncidentsButton.classList.add('hidden');
+    helpButton.classList.add('hidden');
+    feedbackScreen.classList.add('hidden');
+    trafficInfo.classList.add('hidden');
+
+  });
+
+  startButtonForm.addEventListener('click', () => {
+    speakText('Opening form...');
+    alert('Opening form...');
+    menuContainer.style.display = 'none'
+
+    screens.classList.add('hidden');
+    startButtonCrossing.classList.add('hidden');
+    startButtonForm.classList.add('hidden');
+    cameraBox.classList.add('hidden');
+    bottomScreen.classList.add('hidden');
+    trafficIncidentsButton.classList.add('hidden');
+    helpButton.classList.add('hidden');
+    feedbackScreen.classList.remove('hidden');
+    trafficInfo.classList.add('hidden');
+  });
+
+  walkingSlider.addEventListener('input', () => {
+    const Spoken = 0; 
+    const value = walkingSlider.value;
+    stickman.style.left = `calc(${value}% - 10px)`;
+
+    if(redDetected.classList.contains('hidden')){
+      //console.log(value)
+      if (value > 25) {
+                const text = "Don\'t cross";
+                bottomText1.textContent = text;
+                if (!speaking && !isMuted) { // Check if "Crossed" text has not been spoken
+                    speakText('Don\'t cross'); 
+                  }
+                // Optionally, you can add logic here to speak the text or provide some visual indication.
+            } else{
+              const text = "Wait";
+                bottomText1.textContent = text;
+                if (!speaking && !isMuted) { // Check if "Crossed" text has not been spoken
+                    speakText('Wait'); 
+                  }
+            }
+    }else{
+      if (value == 100) {
+      bottomText1.textContent = 'Crossed Successfully';
+      if (!isMuted) { // Check if "Crossed" text has not been spoken
+        speakText('Crossed Successfully'); 
+      }
+      setTimeout(() => {
+        bottomText1.textContent = '';
+        feedbackScreen.classList.remove('hidden');
+      }, 1500);
+    } else {
+        bottomText1.textContent = 'Walking...';
+        bw = bottomText1.textContent
+        if (!speaking && !isMuted) { // Only speak when not muted
+          speakText('Walking');
+        }
+    }
+    }
+
+  });
+
+  document.getElementById('firstSection').addEventListener('click', () => {
+    const text = 'OLIVE ST';
+    bottomText1.textContent = text;
+    if (!isMuted) {
+       speakText(text);
+    }
+    setTimeout(() => bottomText1.textContent = '', 1500);
+  });
+
+  document.getElementById('secondSection').addEventListener('dblclick', () => {
+    const text = '20 steps';
+    bottomText2.textContent = text;
+    if (!isMuted) {
+        speakText(text);
+     }
+    setTimeout(() => bottomText2.textContent = '', 1500);
+  });
+
+  document.getElementById('thirdSection').addEventListener('click', () => {
+    clickCount++;
+    if (clickCount === 3) {
+      const text = 'Plus intersection';
+      bottomText3.textContent = text;
+      if (!isMuted) {
+        speakText(text);
+      }
+      clickCount = 0;
+      setTimeout(() => bottomText3.textContent = '', 1500);
+    }
+  });
+
+  redDetected.addEventListener('click', () => {
+    const text = 'Start walking';
+    bottomText1.textContent = text;
+    if (!isMuted) {
+     speakText(text);
+    }
+    setTimeout(() => bottomText3.textContent = '', 1500);
+  });
+
+  submitFeedback.addEventListener('click', () => {
+    speakText('THANK YOU');
+    alert('THANK YOU');
+
+    // resetPage();
+  });
+
+  darkModeButton.addEventListener('click', toggleDarkMode);
+  muteButton.addEventListener('click', toggleMute);
+
+  function toggleDarkMode() {
+    const body = document.body;
+    body.classList.toggle('dark-mode');
+    menuContainer.classList.toggle('dark-mode');
+    const darkModeButtonText = darkModeButton.textContent;
+    darkModeButton.textContent = darkModeButtonText === 'Dark Mode' ? 'Light Mode' : 'Dark Mode';
+  }
+
+  function toggleMute() {
+    isMuted = !isMuted;
+    const buttonText = isMuted ? 'Unmute' : 'Mute';
+    muteButton.textContent = buttonText;
+    // If muted, stop any ongoing speech
+    if (isMuted) {
+      synth.cancel();
+    } else {
+      if (bottomText1.textContent === 'Crossed') {
+        speakText('Crossed');
+      }
+    }
+  }
+
+  function resetPage() {
+    menuContainer.style.display = 'flex'
+    screens.classList.add('hidden');
+
+    startButtonCrossing.classList.remove('hidden');
+    startButtonForm.classList.remove('hidden');
+    cameraBox.classList.add('hidden');
+    sliderBox.classList.add('hidden');
+    bottomScreen.classList.add('hidden');
+    feedbackScreen.classList.add('hidden');
+    trafficIncidentsButton.classList.remove('hidden');
+    helpButton.classList.remove('hidden');
+    crossedSpoken = false; // Reset flag for "Crossed" text spoken
+  }
+
+  function speakText(text) {
+    speaking = true; // Set speaking flag to true
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onend = () => {
+      speaking = false; // Set speaking flag to false when speech ends
+    };
+    synth.speak(utterance);
+  }
+
+
+  // TRAFFIC
+  const trafficIncidentsButton = document.getElementById('trafficIncidentsButton');
+  const trafficInfo = document.getElementById('trafficInfo');
+  const trafficList = document.getElementById('trafficList');
+
+  // Function to fetch traffic incidents data
+  function fetchTrafficIncidentsData() {
+  const apiUrl = 'https://data.traffic.hereapi.com/v7/incidents';
+  const location = 'bbox:-90.320515,38.532012,-90.166271,38.774368'; // Sample bounding box
+  const locationReferencing = 'shape'; // Retrieve location references by name
+  const apiKey = 'qUd-XE5KpUvHbuB2xznaswNviuCGPSpSN_ElpfqKkrE';
+
+  const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+  const url = `${apiUrl}?in=${location}&locationReferencing=${locationReferencing}&apiKey=${apiKey}`;
+
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      // console.log(data); // Log the data for debugging
+      displayTrafficIncidents(data?.results);
+    })
+    .catch(error => {
+      console.error('Failed to fetch traffic incidents data:', error);
+      alert('Failed to fetch traffic incidents data. See console for details.');
+    });
+}
+
+  // Function to display traffic incidents
+  function displayTrafficIncidents(incidents) {
+    const trafficInfo = document.getElementById('trafficInfo');
+    const trafficList = document.getElementById('trafficList');
+    trafficList.innerHTML = '';  // Clear previous entries
+
+    if (incidents) {
+        incidents.forEach((incident) => {
+            // Extracting incident details
+            const summary = incident.incidentDetails.summary?.value || "Summary not available";  // Extracting the summary
+            const description = incident.incidentDetails.description?.value || "Detailed description not available";  // Extracting the description
+            const entryTime = incident.incidentDetails.entryTime || "Entry time not available"; // Extracting entry time
+            const criticality = incident.incidentDetails.criticality || "Criticality not available"; // Extracting criticality
+
+            // Create list item for each incident
+            const listItem = document.createElement('li');
+            const summaryText = document.createElement('p');
+            summaryText.textContent = `Summary: ${summary}`;
+            listItem.appendChild(summaryText);
+
+            // Display additional incident details
+            const detailsText = document.createElement('p');
+            detailsText.textContent = `Entry Time: ${entryTime}, Criticality: ${criticality}`;
+
+            detailsText.style.display = 'none';
+            listItem.appendChild(detailsText);
+
+            // Optionally toggle visibility of the full description
+            const descriptionText = document.createElement('p');
+            descriptionText.textContent = `Description: ${description}`;
+            
+            descriptionText.style.display = 'none';  // Hide details by default
+            listItem.appendChild(descriptionText);
+
+            const toggleButton = document.createElement('button');
+            toggleButton.textContent = 'Show Details';
+            toggleButton.onclick = function () {
+                descriptionText.style.display = descriptionText.style.display === 'none' ? 'block' : 'none';
+                toggleButton.textContent = descriptionText.style.display === 'none' ? 'Show Details' : 'Hide Details';
+
+                detailsText.style.display = detailsText.style.display === 'none' ? 'block' : 'none';
+                toggleButton.textContent = detailsText.style.display === 'none' ? 'Show Details' : 'Hide Details';
+            };
+            listItem.appendChild(toggleButton);
+
+            trafficList.appendChild(listItem);
+        });
+    } else {
+        trafficList.innerHTML = '<li>No current traffic incidents available.</li>';
+    }
+
+    trafficInfo.classList.remove('hidden');  // Make traffic info visible
+  }
+
+  // Event listener for traffic incidents button
+    trafficIncidentsButton.addEventListener('click', () => {
+      speakText('Fetching traffic incidents...');
+      alert('Fetching traffic incidents...');
+      fetchTrafficIncidentsData();
+    });
+
+    let isSubmitting = false; // Flag to track form submission
+
+    submitFeedback.addEventListener('click', () => {
+      if (isSubmitting) return; // Prevent multiple form submissions
+      isSubmitting = true; // Set the flag to true
+
+      const formData = new FormData();
+      formData.append('name', document.getElementById('name').value);
+      formData.append('location', document.getElementById('location').value);
+      formData.append('visualImpairment', document.getElementById('visualImpairment').value);
+      formData.append('frequency', document.getElementById('frequency').value);
+      formData.append('benefit', document.getElementById('benefit').value);
+      formData.append('navigation', document.getElementById('navigation').value);
+      formData.append('insufficientWarnings', document.getElementById('insufficientWarnings').value);
+      formData.append('usefulFeatures', document.getElementById('usefulFeatures').value);
+      formData.append('concerns', document.getElementById('concerns').value);
+      formData.append('websiteExperience', document.getElementById('websiteExperience').value);
+      formData.append('websiteAccessibility', document.getElementById('websiteAccessibility').value);
+      formData.append('accessibilityFeatures', document.getElementById('accessibilityFeatures').value);
+      formData.append('interactionPreference', document.getElementById('interactionPreference').value);
+      formData.append('recommendations', document.getElementById('recommendations').value);
+
+      fetch('/submit_feedback', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        // return response.text();
+        // return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          console.error('Error:', data.error);
+        } else {
+          console.log(data);
+          // resetPage();
+          // Handle successful submission
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        // Handle error
+      });
+    });
+    
+
+    // Get camera stream
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            const videoElement = document.getElementById('cameraStream');
+            videoElement.srcObject = stream;
+            videoElement.onloadedmetadata = function(e) {
+                // Start color detection after metadata is loaded
+                startColorDetection(videoElement);
+            };
+        })
+        .catch(function(err) {
+            console.log("An error occurred: " + err);
+        });
+
+    // Function to start color detection
+    // Function to convert RGB to HSV
+    function rgbToHsv(r, g, b) {
+        r /= 255, g /= 255, b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, v = max;
+        const d = max - min;
+        s = max == 0 ? 0 : d / max;
+        if (max == min) {
+            h = 0; // achromatic
+        } else {
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return [h * 360, s * 100, v * 100];
+    }
+
+    // Function to check if a pixel is within a specific color range
+    
+    // Define the RGB range for red color
+    const redRange = {
+        min: [200, 0, 0], // Minimum red value
+        max: [255, 100, 100] // Maximum red value
+    };
+
+    // Function to check if a pixel is within the red color range
+    function isRed(r, g, b) {
+        // Check if the pixel color matches the specified red color range
+        return r >= redRange.min[0] && r <= redRange.max[0] &&
+              g >= redRange.min[1] && g <= redRange.max[1] &&
+              b >= redRange.min[2] && b <= redRange.max[2];
+    }
+
+
+    // Function to start color detection
+    function startColorDetection(videoElement) {
+        const redDetectedButton = document.getElementById('redDetected');
+
+        // Detect red color in the camera stream
+        const colorDetector = setInterval(() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            let redFound = false;
+            for (let i = 0; i < data.length; i += 4) {
+                const red = data[i];
+                const green = data[i + 1];
+                const blue = data[i + 2];
+
+                // Check if the pixel color matches the specified red color range
+                if (isRed(red, green, blue)) {
+    
+                    redFound = true;
+                    break;
+                }
+            }
+
+            if (redFound) {
+                redDetectedButton.classList.remove('hidden');
+                redFound = false;
+            } else {
+                redDetectedButton.classList.add('hidden');
+                redFound = false;
+            }
+        }, 100);
+    }
+
+
+</script>
+
+</body>
+</html>
